@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install *)",
+      "Bash(python *)",
+      "Bash(softwareupdate *)",
+      "Bash(/Applications/OpenSCAD-2021.01.app/Contents/MacOS/OpenSCAD *)",
+      "Bash(xattr *)"
+    ]
+  }
+}
