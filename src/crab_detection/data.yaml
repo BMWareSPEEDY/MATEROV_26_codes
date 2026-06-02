@@ -1,0 +1,7 @@
+path: ../../assets/crab_detection/dataset
+train: train/images
+val: train/images    # Pointing to train because valid/images is missing
+test: train/images   # Pointing to train because test/images is missing
+
+nc: 3
+names: ['European green crab', 'John Crab', 'Native rock crab']

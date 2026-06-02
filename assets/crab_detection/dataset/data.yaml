@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 3
+names: ['European green crab', 'John Crab', 'Native rock crab']
+
+roboflow:
+  workspace: arrohan-project-2025
+  project: crab_detection_mate_26
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/arrohan-project-2025/crab_detection_mate_26/dataset/1
