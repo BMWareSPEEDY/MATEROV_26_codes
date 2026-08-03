@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MATE ROV 2026 — Ranger Class Scorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2236;
+  --border: #2a3450;
+  --text: #e2e8f0;
+  --text-dim: #8892a8;
+  --accent-flume: #06b6d4;
+  --accent-flume-bg: rgba(6, 182, 212, 0.08);
+  --accent-ice: #a78bfa;
+  --accent-ice-bg: rgba(167, 139, 250, 0.08);
+  --accent-wave: #f59e0b;
+  --accent-wave-bg: rgba(245, 158, 11, 0.08);
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --radius: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  padding: 40px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(6,182,212,0.06) 0%, transparent 100%);
+}
+
+.header h1 {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #06b6d4, #a78bfa, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header p {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 10px 24px;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab:hover { border-color: var(--text-dim); color: var(--text); }
+.tab.active[data-tab="flume"] { border-color: var(--accent-flume); color: var(--accent-flume); background: var(--accent-flume-bg); }
+.tab.active[data-tab="ice"] { border-color: var(--accent-ice); color: var(--accent-ice); background: var(--accent-ice-bg); }
+.tab.active[data-tab="wave"] { border-color: var(--accent-wave); color: var(--accent-wave); background: var(--accent-wave-bg); }
+
+.station { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
+.station.active { display: block; }
+
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.section-header {
+  padding: 14px 18px;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-header .pts {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.flume .section-header { background: var(--accent-flume-bg); color: var(--accent-flume); border-bottom: 1px solid rgba(6,182,212,0.15); }
+.flume .section-header .pts { background: rgba(6,182,212,0.15); color: var(--accent-flume); }
+.ice .section-header { background: var(--accent-ice-bg); color: var(--accent-ice); border-bottom: 1px solid rgba(167,139,250,0.15); }
+.ice .section-header .pts { background: rgba(167,139,250,0.15); color: var(--accent-ice); }
+.wave .section-header { background: var(--accent-wave-bg); color: var(--accent-wave); border-bottom: 1px solid rgba(245,158,11,0.15); }
+.wave .section-header .pts { background: rgba(245,158,11,0.15); color: var(--accent-wave); }
+
+.section-body { padding: 10px 0; }
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 18px;
+  transition: background 0.15s;
+}
+
+.item:hover { background: var(--surface2); }
+
+.item label {
+  flex: 1;
+  font-size: 0.88rem;
+  cursor: pointer;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.item .points-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: center;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text-dim);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.item.negative .points-badge { color: var(--accent-red); background: rgba(239,68,68,0.1); }
+
+.sub-heading {
+  padding: 6px 18px 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.radio-group {
+  padding: 8px 18px;
+}
+
+.radio-group-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  cursor: pointer;
+}
+
+.radio-option label {
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex: 1;
+}
+
+.radio-option .points-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: center;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text-dim);
+}
+
+input[type="checkbox"], input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.15s;
+  position: relative;
+}
+
+input[type="radio"] { border-radius: 50%; }
+
+input[type="checkbox"]:checked {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+input[type="radio"]:checked {
+  border-color: var(--accent-green);
+  background: var(--surface);
+}
+
+input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent-green);
+}
+
+.penalty-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+}
+
+.penalty-input-row label {
+  font-size: 0.85rem;
+  flex: 1;
+}
+
+.penalty-input-row input[type="number"] {
+  width: 70px;
+  padding: 6px 10px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.penalty-input-row input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent-red);
+}
+
+.time-bonus-section {
+  padding: 12px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.time-bonus-section label {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.time-bonus-section input[type="number"] {
+  width: 70px;
+  padding: 6px 10px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.time-bonus-section input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent-flume);
+}
+
+.score-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  z-index: 200;
+  flex-wrap: wrap;
+}
+
+.score-chip {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-chip.flume { background: var(--accent-flume-bg); color: var(--accent-flume); border: 1px solid rgba(6,182,212,0.2); }
+.score-chip.ice { background: var(--accent-ice-bg); color: var(--accent-ice); border: 1px solid rgba(167,139,250,0.2); }
+.score-chip.wave { background: var(--accent-wave-bg); color: var(--accent-wave); border: 1px solid rgba(245,158,11,0.2); }
+
+.score-chip.total {
+  background: linear-gradient(135deg, rgba(6,182,212,0.1), rgba(167,139,250,0.1), rgba(245,158,11,0.1));
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-size: 1rem;
+}
+
+.note {
+  padding: 8px 18px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 18px;
+}
+
+.spacer { height: 80px; }
+
+@media (max-width: 600px) {
+  .tabs { gap: 2px; padding: 12px 8px; }
+  .tab { padding: 8px 14px; font-size: 0.75rem; }
+  .score-bar { gap: 8px; padding: 10px 12px; }
+  .score-chip { font-size: 0.72rem; padding: 5px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>MATE ROV 2026 — RANGER SCORER</h1>
+  <p>World Championship · Flume Tank · Ice Tank · OEB Wave Tank</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="flume" onclick="switchTab('flume')">🌊 Flume</button>
+  <button class="tab" data-tab="ice" onclick="switchTab('ice')">🧊 Ice</button>
+  <button class="tab" data-tab="wave" onclick="switchTab('wave')">⚡ Wave</button>
+</div>
+
+<!-- ==================== FLUME TANK ==================== -->
+<div class="station flume active" id="station-flume">
+
+  <!-- Safety -->
+  <div class="section">
+    <div class="section-header">Safety <span class="pts">/ 5</span></div>
+    <div class="section-body">
+      <div class="item"><input type="checkbox" data-station="flume" data-points="0" disabled checked><label>PASSED safety inspection card (required)</label><span class="points-badge">req</span></div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="0" disabled checked><label>Tamper seal on fuse intact</label><span class="points-badge">req</span></div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="5" data-cat="safety"><label>Company presented JSEA</label><span class="points-badge">5</span></div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="0" disabled checked><label>Vehicle matches safety inspection photo</label><span class="points-badge">req</span></div>
+    </div>
+  </div>
+
+  <!-- OOE -->
+  <div class="section">
+    <div class="section-header">Organizational & Operational Effectiveness <span class="pts">/ 10</span></div>
+    <div class="section-body">
+      <div class="sub-heading">Teamwork / Communication (up to 4)</div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="1" data-cat="ooe"><label>Chain of command evident</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="1" data-cat="ooe"><label>Roles clear and executed well</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="1" data-cat="ooe"><label>Composure under pressure</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="1" data-cat="ooe"><label>Supportive & communicate well</label><span class="points-badge">1</span></div>
+      <div class="sub-heading">Project Management (up to 2)</div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="1" data-cat="ooe"><label>Task plan well thought out</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="1" data-cat="ooe"><label>Alternate plans available & team aware</label><span class="points-badge">1</span></div>
+      <div class="sub-heading">Problem Solving (up to 2)</div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="1" data-cat="ooe"><label>Awareness of time</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="1" data-cat="ooe"><label>Adjusting timeline to adapt</label><span class="points-badge">1</span></div>
+      <div class="sub-heading">System Design (up to 2)</div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="1" data-cat="ooe"><label>ROV deployed by end of 5-min setup</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="1" data-cat="ooe"><label>ROV under control & ready</label><span class="points-badge">1</span></div>
+    </div>
+  </div>
+
+  <!-- Task 1: Seabed 2030 -->
+  <div class="section">
+    <div class="section-header">Task 1: Seabed 2030 — Coral Garden <span class="pts">/ 85</span></div>
+    <div class="section-body">
+      <div class="sub-heading">1.1 Collect Species (up to 30)</div>
+
+      <div class="radio-group">
+        <div class="radio-group-title">Basket Stars</div>
+        <div class="radio-option"><input type="radio" name="flume_basket" data-station="flume" data-cat="task1" value="0" checked><label>None collected</label><span class="points-badge">0</span></div>
+        <div class="radio-option"><input type="radio" name="flume_basket" data-station="flume" data-cat="task1" value="5"><label>One basket star</label><span class="points-badge">5</span></div>
+        <div class="radio-option"><input type="radio" name="flume_basket" data-station="flume" data-cat="task1" value="10"><label>Two basket stars</label><span class="points-badge">10</span></div>
+      </div>
+
+      <div class="radio-group">
+        <div class="radio-group-title">Coral Species Collection</div>
+        <div class="radio-option"><input type="radio" name="flume_coral" data-station="flume" data-cat="task1" value="0" checked><label>None collected</label><span class="points-badge">0</span></div>
+        <div class="radio-option"><input type="radio" name="flume_coral" data-station="flume" data-cat="task1" value="5"><label>One coral NOT by substrate</label><span class="points-badge">5</span></div>
+        <div class="radio-option"><input type="radio" name="flume_coral" data-station="flume" data-cat="task1" value="10"><label>Two corals NOT by substrate</label><span class="points-badge">10</span></div>
+        <div class="radio-option"><input type="radio" name="flume_coral" data-station="flume" data-cat="task1" value="15"><label>One by substrate + one NOT</label><span class="points-badge">15</span></div>
+        <div class="radio-option"><input type="radio" name="flume_coral" data-station="flume" data-cat="task1" value="20"><label>Two corals by substrate</label><span class="points-badge">20</span></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="sub-heading">1.2 Coral Garden Ridge Modelling (up to 40)</div>
+      <div class="note">Choose ONE modelling method below. Only one set of points applies.</div>
+
+      <div class="radio-group">
+        <div class="radio-group-title">Modelling Method</div>
+        <div class="radio-option"><input type="radio" name="flume_model_method" data-station="flume" data-cat="task1_model" value="none" checked><label>No modelling attempted</label><span class="points-badge">0</span></div>
+        <div class="radio-option"><input type="radio" name="flume_model_method" data-station="flume" data-cat="task1_model" value="photogrammetry"><label>Photogrammetry (autonomous 3D model)</label><span class="points-badge">≤40</span></div>
+        <div class="radio-option"><input type="radio" name="flume_model_method" data-station="flume" data-cat="task1_model" value="cad"><label>Manual CAD 3D model</label><span class="points-badge">≤30</span></div>
+        <div class="radio-option"><input type="radio" name="flume_model_method" data-station="flume" data-cat="task1_model" value="paper"><label>Paper 3-view technical drawing</label><span class="points-badge">≤20</span></div>
+      </div>
+
+      <!-- Photogrammetry sub-items -->
+      <div id="flume-photo-sub" class="model-sub" style="display:none; padding-left: 20px;">
+        <div class="radio-group">
+          <div class="radio-group-title">3D Model Quality</div>
+          <div class="radio-option"><input type="radio" name="flume_photo_model" data-station="flume" data-cat="task1_photo" value="0" checked><label>Model not created</label><span class="points-badge">0</span></div>
+          <div class="radio-option"><input type="radio" name="flume_photo_model" data-station="flume" data-cat="task1_photo" value="5"><label>Model created, no targets</label><span class="points-badge">5</span></div>
+          <div class="radio-option"><input type="radio" name="flume_photo_model" data-station="flume" data-cat="task1_photo" value="10"><label>Shows 1–3 targets</label><span class="points-badge">10</span></div>
+          <div class="radio-option"><input type="radio" name="flume_photo_model" data-station="flume" data-cat="task1_photo" value="15"><label>Shows 4–7 targets</label><span class="points-badge">15</span></div>
+          <div class="radio-option"><input type="radio" name="flume_photo_model" data-station="flume" data-cat="task1_photo" value="20"><label>Shows all 8 targets</label><span class="points-badge">20</span></div>
+        </div>
+        <div class="item"><input type="checkbox" data-station="flume" data-points="10" data-cat="task1_photo_extra"><label>Measure length within 5 cm</label><span class="points-badge">10</span></div>
+        <div class="item"><input type="checkbox" data-station="flume" data-points="5" data-cat="task1_photo_extra"><label>Scale model using garden length</label><span class="points-badge">5</span></div>
+        <div class="item"><input type="checkbox" data-station="flume" data-points="5" data-cat="task1_photo_extra"><label>Estimate height within 5 cm</label><span class="points-badge">5</span></div>
+      </div>
+
+      <!-- CAD sub-items -->
+      <div id="flume-cad-sub" class="model-sub" style="display:none; padding-left: 20px;">
+        <div class="item"><input type="checkbox" data-station="flume" data-points="10" data-cat="task1_cad"><label>Measure length within 5 cm</label><span class="points-badge">10</span></div>
+        <div class="item"><input type="checkbox" data-station="flume" data-points="10" data-cat="task1_cad"><label>Measure height within 5 cm</label><span class="points-badge">10</span></div>
+        <div class="item"><input type="checkbox" data-station="flume" data-points="10" data-cat="task1_cad"><label>Create scaled 3D model with measurements</label><span class="points-badge">10</span></div>
+      </div>
+
+      <!-- Paper sub-items -->
+      <div id="flume-paper-sub" class="model-sub" style="display:none; padding-left: 20px;">
+        <div class="item"><input type="checkbox" data-station="flume" data-points="5" data-cat="task1_paper"><label>Measure length within 5 cm</label><span class="points-badge">5</span></div>
+        <div class="item"><input type="checkbox" data-station="flume" data-points="5" data-cat="task1_paper"><label>Measure height within 5 cm</label><span class="points-badge">5</span></div>
+        <div class="item"><input type="checkbox" data-station="flume" data-points="10" data-cat="task1_paper"><label>3-view technical drawing (top, front, side)</label><span class="points-badge">10</span></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="sub-heading">1.3 Fly a Transect (up to 15)</div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="15" data-cat="task1_transect"><label>Maintain position over coral garden in current</label><span class="points-badge">15</span></div>
+    </div>
+  </div>
+
+  <!-- Task 2: SmartAtlantic -->
+  <div class="section">
+    <div class="section-header">Task 2: SmartAtlantic <span class="pts">/ 55</span></div>
+    <div class="section-body">
+      <div class="sub-heading">2.1 Invasive Species (up to 20)</div>
+      <div class="radio-group">
+        <div class="radio-group-title">Determine number of Green Crabs</div>
+        <div class="radio-option"><input type="radio" name="flume_crabs" data-station="flume" data-cat="task2" value="0" checked><label>Not attempted</label><span class="points-badge">0</span></div>
+        <div class="radio-option"><input type="radio" name="flume_crabs" data-station="flume" data-cat="task2" value="5"><label>Manually counted</label><span class="points-badge">5</span></div>
+        <div class="radio-option"><input type="radio" name="flume_crabs" data-station="flume" data-cat="task2" value="15"><label>Using image recognition</label><span class="points-badge">15</span></div>
+      </div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="5" data-cat="task2"><label>Upload data to invasive species form</label><span class="points-badge">5</span></div>
+
+      <div class="divider"></div>
+      <div class="sub-heading">2.2 Iceberg Tracking (up to 35)</div>
+      <div class="radio-group">
+        <div class="radio-group-title">Survey iceberg perimeter</div>
+        <div class="radio-option"><input type="radio" name="flume_iceberg_survey" data-station="flume" data-cat="task2" value="0" checked><label>None surveyed</label><span class="points-badge">0</span></div>
+        <div class="radio-option"><input type="radio" name="flume_iceberg_survey" data-station="flume" data-cat="task2" value="5"><label>1–4 points surveyed</label><span class="points-badge">5</span></div>
+        <div class="radio-option"><input type="radio" name="flume_iceberg_survey" data-station="flume" data-cat="task2" value="10"><label>All 5 points surveyed</label><span class="points-badge">10</span></div>
+      </div>
+      <div class="radio-group">
+        <div class="radio-group-title">Measure keel depth</div>
+        <div class="radio-option"><input type="radio" name="flume_keel" data-station="flume" data-cat="task2" value="0" checked><label>Not measured</label><span class="points-badge">0</span></div>
+        <div class="radio-option"><input type="radio" name="flume_keel" data-station="flume" data-cat="task2" value="5"><label>Within 5.01–10 cm</label><span class="points-badge">5</span></div>
+        <div class="radio-option"><input type="radio" name="flume_keel" data-station="flume" data-cat="task2" value="10"><label>Within 5 cm</label><span class="points-badge">10</span></div>
+      </div>
+      <div class="radio-group">
+        <div class="radio-group-title">Threat level to offshore platforms</div>
+        <div class="radio-option"><input type="radio" name="flume_threat" data-station="flume" data-cat="task2" value="0" checked><label>Not determined</label><span class="points-badge">0</span></div>
+        <div class="radio-option"><input type="radio" name="flume_threat" data-station="flume" data-cat="task2" value="5"><label>Correctly report 3 platforms</label><span class="points-badge">5</span></div>
+        <div class="radio-option"><input type="radio" name="flume_threat" data-station="flume" data-cat="task2" value="10"><label>Correctly report all 4 platforms</label><span class="points-badge">10</span></div>
+      </div>
+      <div class="item"><input type="checkbox" data-station="flume" data-points="5" data-cat="task2"><label>Determine threat to subsea assets</label><span class="points-badge">5</span></div>
+    </div>
+  </div>
+
+  <!-- Penalties & Time Bonus Flume -->
+  <div class="section">
+    <div class="section-header">Penalties & Time Bonus <span class="pts">—</span></div>
+    <div class="section-body">
+      <div class="penalty-input-row"><label>Number of penalty infractions (×5 pts each)</label><input type="number" id="flume-penalties" min="0" value="0" data-station="flume"></div>
+      <div class="divider"></div>
+      <div class="time-bonus-section">
+        <label>Minutes under 15:</label><input type="number" id="flume-time-min" min="0" max="15" value="0" data-station="flume">
+        <label>Seconds remaining:</label><input type="number" id="flume-time-sec" min="0" max="59" value="0" data-station="flume">
+      </div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+</div>
+
+<!-- ==================== ICE TANK ==================== -->
+<div class="station ice" id="station-ice">
+
+  <div class="section">
+    <div class="section-header">Safety <span class="pts">/ 5</span></div>
+    <div class="section-body">
+      <div class="item"><input type="checkbox" data-station="ice" data-points="0" disabled checked><label>PASSED safety inspection card (required)</label><span class="points-badge">req</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="5" data-cat="safety"><label>Company presented JSEA</label><span class="points-badge">5</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="0" disabled checked><label>Float matches safety inspection photo</label><span class="points-badge">req</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">Organizational & Operational Effectiveness <span class="pts">/ 10</span></div>
+    <div class="section-body">
+      <div class="sub-heading">Teamwork / Communication (up to 4)</div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="1" data-cat="ooe"><label>Chain of command evident</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="1" data-cat="ooe"><label>Roles clear and executed well</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="1" data-cat="ooe"><label>Composure under pressure</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="1" data-cat="ooe"><label>Supportive & communicate well</label><span class="points-badge">1</span></div>
+      <div class="sub-heading">Project Management (up to 2)</div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="1" data-cat="ooe"><label>Task plan prepared for float recovery</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="1" data-cat="ooe"><label>Preparation for graphing recovered data</label><span class="points-badge">1</span></div>
+      <div class="sub-heading">Problem Solving (up to 2)</div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="1" data-cat="ooe"><label>Awareness of float movements</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="1" data-cat="ooe"><label>Readiness to troubleshoot & adapt</label><span class="points-badge">1</span></div>
+      <div class="sub-heading">System Design (up to 2)</div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="1" data-cat="ooe"><label>Float deployed by end of setup</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="1" data-cat="ooe"><label>Float operational & ready</label><span class="points-badge">1</span></div>
+    </div>
+  </div>
+
+  <!-- Task 4: Float Under Ice -->
+  <div class="section">
+    <div class="section-header">Task 4: MATE Floats Under the Ice <span class="pts">/ 70</span></div>
+    <div class="section-body">
+      <div class="item"><input type="checkbox" data-station="ice" data-points="5" data-cat="task4"><label>Designed & constructed a vertical profiling float</label><span class="points-badge">5</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="5" data-cat="task4"><label>Float communicates with station before descending</label><span class="points-badge">5</span></div>
+
+      <div class="divider"></div>
+      <div class="sub-heading">Vertical Profile #1</div>
+      <div class="radio-group">
+        <div class="radio-group-title">Float completes 1st profile</div>
+        <div class="radio-option"><input type="radio" name="ice_vp1" data-station="ice" data-cat="task4" value="0" checked><label>Not completed</label><span class="points-badge">0</span></div>
+        <div class="radio-option"><input type="radio" name="ice_vp1" data-station="ice" data-cat="task4" value="5"><label>Using different mechanism</label><span class="points-badge">5</span></div>
+        <div class="radio-option"><input type="radio" name="ice_vp1" data-station="ice" data-cat="task4" value="10"><label>Using buoyancy engine</label><span class="points-badge">10</span></div>
+      </div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="5" data-cat="task4"><label>VP1: Maintains 2.5m depth for 30s</label><span class="points-badge">5</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="5" data-cat="task4"><label>VP1: Maintains 40cm depth for 30s</label><span class="points-badge">5</span></div>
+      <div class="item negative"><input type="checkbox" data-station="ice" data-points="-5" data-cat="task4"><label>VP1: Float breaks surface or contacts ice (−5)</label><span class="points-badge">−5</span></div>
+
+      <div class="divider"></div>
+      <div class="sub-heading">Vertical Profile #2</div>
+      <div class="radio-group">
+        <div class="radio-group-title">Float completes 2nd profile</div>
+        <div class="radio-option"><input type="radio" name="ice_vp2" data-station="ice" data-cat="task4" value="0" checked><label>Not completed</label><span class="points-badge">0</span></div>
+        <div class="radio-option"><input type="radio" name="ice_vp2" data-station="ice" data-cat="task4" value="5"><label>Using different mechanism</label><span class="points-badge">5</span></div>
+        <div class="radio-option"><input type="radio" name="ice_vp2" data-station="ice" data-cat="task4" value="10"><label>Using buoyancy engine</label><span class="points-badge">10</span></div>
+      </div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="5" data-cat="task4"><label>VP2: Maintains 2.5m depth for 30s</label><span class="points-badge">5</span></div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="5" data-cat="task4"><label>VP2: Maintains 40cm depth for 30s</label><span class="points-badge">5</span></div>
+      <div class="item negative"><input type="checkbox" data-station="ice" data-points="-5" data-cat="task4"><label>VP2: Float breaks surface or contacts ice (−5)</label><span class="points-badge">−5</span></div>
+
+      <div class="divider"></div>
+      <div class="sub-heading">Post-Recovery</div>
+      <div class="radio-group">
+        <div class="radio-group-title">Float communicates after recovery</div>
+        <div class="radio-option"><input type="radio" name="ice_comms" data-station="ice" data-cat="task4" value="0" checked><label>No communication</label><span class="points-badge">0</span></div>
+        <div class="radio-option"><input type="radio" name="ice_comms" data-station="ice" data-cat="task4" value="5"><label>At least one data packet</label><span class="points-badge">5</span></div>
+        <div class="radio-option"><input type="radio" name="ice_comms" data-station="ice" data-cat="task4" value="10"><label>All data packets</label><span class="points-badge">10</span></div>
+      </div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="10" data-cat="task4"><label>Profile graphed as depth over time</label><span class="points-badge">10</span></div>
+
+      <div class="divider"></div>
+      <div class="note">If float doesn't communicate data after recovery, teams may graph MATE-provided data instead:</div>
+      <div class="item"><input type="checkbox" data-station="ice" data-points="10" data-cat="task4_mate"><label>MATE-provided data used to graph depth over time</label><span class="points-badge">10</span></div>
+    </div>
+  </div>
+
+  <!-- Penalties Ice -->
+  <div class="section">
+    <div class="section-header">Penalties <span class="pts">—</span></div>
+    <div class="section-body">
+      <div class="penalty-input-row"><label>Number of penalty infractions (×5 pts each)</label><input type="number" id="ice-penalties" min="0" value="0" data-station="ice"></div>
+      <div class="note">No time bonus for Ice Tank station.</div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+</div>
+
+<!-- ==================== OEB WAVE TANK ==================== -->
+<div class="station wave" id="station-wave">
+
+  <div class="section">
+    <div class="section-header">Safety <span class="pts">/ 5</span></div>
+    <div class="section-body">
+      <div class="item"><input type="checkbox" data-station="wave" data-points="0" disabled checked><label>PASSED safety inspection card (required)</label><span class="points-badge">req</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="0" disabled checked><label>Tamper seal on fuse intact</label><span class="points-badge">req</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="5" data-cat="safety"><label>Company presented JSEA</label><span class="points-badge">5</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="0" disabled checked><label>Vehicle matches safety inspection photo</label><span class="points-badge">req</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">Organizational & Operational Effectiveness <span class="pts">/ 10</span></div>
+    <div class="section-body">
+      <div class="sub-heading">Teamwork / Communication (up to 4)</div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="1" data-cat="ooe"><label>Chain of command evident</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="1" data-cat="ooe"><label>Roles clear and executed well</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="1" data-cat="ooe"><label>Composure under pressure</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="1" data-cat="ooe"><label>Supportive & communicate well</label><span class="points-badge">1</span></div>
+      <div class="sub-heading">Project Management (up to 2)</div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="1" data-cat="ooe"><label>Task plan well thought out</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="1" data-cat="ooe"><label>Alternate plans available & team aware</label><span class="points-badge">1</span></div>
+      <div class="sub-heading">Problem Solving (up to 2)</div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="1" data-cat="ooe"><label>Awareness of time</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="1" data-cat="ooe"><label>Adjusting timeline to adapt</label><span class="points-badge">1</span></div>
+      <div class="sub-heading">System Design (up to 2)</div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="1" data-cat="ooe"><label>ROV deployed by end of 5-min setup</label><span class="points-badge">1</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="1" data-cat="ooe"><label>ROV under control & ready</label><span class="points-badge">1</span></div>
+    </div>
+  </div>
+
+  <!-- Task 2 continued: SmartAtlantic Wave -->
+  <div class="section">
+    <div class="section-header">Task 2: SmartAtlantic (cont.) <span class="pts">/ 80</span></div>
+    <div class="section-body">
+      <div class="sub-heading">2.3 Whale Safe Fishing Gear (up to 20)</div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task2w"><label>Turn handle to simulate acoustic release</label><span class="points-badge">10</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="5" data-cat="task2w"><label>Recover lobster pot off bottom</label><span class="points-badge">5</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="5" data-cat="task2w"><label>Return lobster pot to surface/pool side</label><span class="points-badge">5</span></div>
+
+      <div class="divider"></div>
+      <div class="sub-heading">2.4 Recover Buoy Anchor (up to 15)</div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task2w"><label>Attach recovery line to buoy anchor</label><span class="points-badge">10</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="5" data-cat="task2w"><label>Return line to surface/pool side</label><span class="points-badge">5</span></div>
+
+      <div class="divider"></div>
+      <div class="sub-heading">2.5 Holyrood Subsea Observatory (up to 45)</div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="5" data-cat="task2w"><label>Recover old eDNA sensor to surface</label><span class="points-badge">5</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task2w"><label>Analyze sensor data — determine % frequency</label><span class="points-badge">10</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task2w"><label>Place new eDNA sensor in designated area</label><span class="points-badge">10</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task2w"><label>Connect new eDNA sensor to observatory</label><span class="points-badge">10</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task2w"><label>Remove biofouling from observatory camera</label><span class="points-badge">10</span></div>
+    </div>
+  </div>
+
+  <!-- Task 3: Wind-Powered Offshore -->
+  <div class="section">
+    <div class="section-header">Task 3: Wind-Powered Offshore Oil Platform <span class="pts">/ 60</span></div>
+    <div class="section-body">
+      <div class="sub-heading">3.1 Micropile Installation (up to 30)</div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task3w"><label>Place bubble curtain around micropile location</label><span class="points-badge">10</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task3w"><label>Guide micropile to designated location</label><span class="points-badge">10</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task3w"><label>Pull pin to release micropile</label><span class="points-badge">10</span></div>
+
+      <div class="divider"></div>
+      <div class="sub-heading">3.2 Powering Oil Platform (up to 30)</div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="5" data-cat="task3w"><label>Retrieve power connector from wind farm</label><span class="points-badge">5</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task3w"><label>Lay power cable through waypoint</label><span class="points-badge">10</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="5" data-cat="task3w"><label>Remove cover from oil platform</label><span class="points-badge">5</span></div>
+      <div class="item"><input type="checkbox" data-station="wave" data-points="10" data-cat="task3w"><label>Install power connector into platform port</label><span class="points-badge">10</span></div>
+    </div>
+  </div>
+
+  <!-- Penalties & Time Bonus Wave -->
+  <div class="section">
+    <div class="section-header">Penalties & Time Bonus <span class="pts">—</span></div>
+    <div class="section-body">
+      <div class="penalty-input-row"><label>Number of penalty infractions (×5 pts each)</label><input type="number" id="wave-penalties" min="0" value="0" data-station="wave"></div>
+      <div class="divider"></div>
+      <div class="time-bonus-section">
+        <label>Minutes under 15:</label><input type="number" id="wave-time-min" min="0" max="15" value="0" data-station="wave">
+        <label>Seconds remaining:</label><input type="number" id="wave-time-sec" min="0" max="59" value="0" data-station="wave">
+      </div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+</div>
+
+<!-- Score Bar -->
+<div class="score-bar">
+  <div class="score-chip flume">🌊 <span id="score-flume">0</span></div>
+  <div class="score-chip ice">🧊 <span id="score-ice">0</span></div>
+  <div class="score-chip wave">⚡ <span id="score-wave">0</span></div>
+  <div class="score-chip total">TOTAL: <span id="score-total">0</span></div>
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+  document.querySelectorAll('.station').forEach(s => s.classList.remove('active'));
+  document.getElementById(`station-${tab}`).classList.add('active');
+}
+
+// Toggle model method sub-sections for flume
+document.querySelectorAll('input[name="flume_model_method"]').forEach(r => {
+  r.addEventListener('change', () => {
+    document.getElementById('flume-photo-sub').style.display = 'none';
+    document.getElementById('flume-cad-sub').style.display = 'none';
+    document.getElementById('flume-paper-sub').style.display = 'none';
+    // Reset hidden sub-items
+    document.querySelectorAll('#flume-photo-sub input, #flume-cad-sub input, #flume-paper-sub input').forEach(i => {
+      if (i.type === 'checkbox') i.checked = false;
+      if (i.type === 'radio') { if (i.value === '0') i.checked = true; else i.checked = false; }
+    });
+    const v = r.value;
+    if (v === 'photogrammetry') document.getElementById('flume-photo-sub').style.display = 'block';
+    else if (v === 'cad') document.getElementById('flume-cad-sub').style.display = 'block';
+    else if (v === 'paper') document.getElementById('flume-paper-sub').style.display = 'block';
+    recalc();
+  });
+});
+
+function recalc() {
+  const scores = { flume: 0, ice: 0, wave: 0 };
+
+  // Sum all checked checkboxes (non-disabled)
+  document.querySelectorAll('input[type="checkbox"][data-cat]:not(:disabled)').forEach(cb => {
+    if (cb.checked) {
+      const station = cb.dataset.station;
+      scores[station] += parseInt(cb.dataset.points);
+    }
+  });
+
+  // Sum all selected radio buttons
+  document.querySelectorAll('input[type="radio"]:checked').forEach(r => {
+    if (r.dataset.station && r.dataset.cat) {
+      // Skip the model method selector itself (value is a string like 'photogrammetry')
+      const v = parseFloat(r.value);
+      if (!isNaN(v)) {
+        scores[r.dataset.station] += v;
+      }
+    }
+  });
+
+  // Penalties
+  const flumePen = parseInt(document.getElementById('flume-penalties').value) || 0;
+  const icePen = parseInt(document.getElementById('ice-penalties').value) || 0;
+  const wavePen = parseInt(document.getElementById('wave-penalties').value) || 0;
+  scores.flume -= flumePen * 5;
+  scores.ice -= icePen * 5;
+  scores.wave -= wavePen * 5;
+
+  // Time bonus (flume & wave only)
+  const flumeMin = parseInt(document.getElementById('flume-time-min').value) || 0;
+  const flumeSec = parseInt(document.getElementById('flume-time-sec').value) || 0;
+  scores.flume += flumeMin * 1 + flumeSec * 0.01;
+
+  const waveMin = parseInt(document.getElementById('wave-time-min').value) || 0;
+  const waveSec = parseInt(document.getElementById('wave-time-sec').value) || 0;
+  scores.wave += waveMin * 1 + waveSec * 0.01;
+
+  document.getElementById('score-flume').textContent = scores.flume.toFixed(2).replace(/\.?0+$/, '');
+  document.getElementById('score-ice').textContent = scores.ice.toFixed(2).replace(/\.?0+$/, '');
+  document.getElementById('score-wave').textContent = scores.wave.toFixed(2).replace(/\.?0+$/, '');
+  const total = scores.flume + scores.ice + scores.wave;
+  document.getElementById('score-total').textContent = total.toFixed(2).replace(/\.?0+$/, '');
+}
+
+// Attach listeners to everything
+document.querySelectorAll('input[type="checkbox"]:not(:disabled), input[type="radio"], input[type="number"]').forEach(el => {
+  el.addEventListener('change', recalc);
+  el.addEventListener('input', recalc);
+});
+
+recalc();
+</script>
+</body>
+</html>
